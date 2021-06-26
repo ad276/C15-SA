@@ -1,3 +1,4 @@
+  
 var PLAY = 1;
 var END = 0;
 var gameState = PLAY;
@@ -5,7 +6,7 @@ var gameState = PLAY;
 var trex, trex_running, trex_collided;
 var ground, invisibleGround, groundImage;
 
-var cloud, cloudsGroup, cloudImage;
+var cloudsGroup, cloudImage;
 var obstaclesGroup, obstacle1, obstacle2, obstacle3, obstacle4, obstacle5, obstacle6;
 
 var score;
@@ -39,14 +40,14 @@ function setup() {
   ground = createSprite(200,180,400,20);
   ground.addImage("ground",groundImage);
   ground.x = ground.width /2;
-  ground.velocityX = -4;
+  
   
   invisibleGround = createSprite(200,190,400,10);
   invisibleGround.visible = false;
   
-  // create Obstacles and Cloud groups
-  obstaclesGroup = new Group();
-  cloudsGroup = new Group();
+  //create Obstacle and Cloud Groups
+  obstaclesGroup = createGroup();
+  cloudsGroup = createGroup();
   
   console.log("Hello" + 5);
   
@@ -55,37 +56,51 @@ function setup() {
 
 function draw() {
   background(180);
+  //displaying score
   text("Score: "+ score, 500,50);
-  score = score + Math.round(frameCount/60);
+  
+  
   
   if(gameState === PLAY){
     //move the ground
     ground.velocityX = -4;
+    //scoring
+    score = score + Math.round(frameCount/60);
     
+    if (ground.x < 0){
+      ground.x = ground.width/2;
+    }
+    
+    //jump when the space key is pressed
+    if(keyDown("space")&& trex.y >= 100) {
+        trex.velocityY = -13;
+    }
+    
+    //add gravity
+    trex.velocityY = trex.velocityY + 0.8
+  
+    //spawn the clouds
+    spawnClouds();
+  
+    //spawn obstacles on the ground
+    spawnObstacles();
+    
+    if(obstaclesGroup.isTouching(trex)){
+        gameState = END;
+    }
   }
-  else if(gameState === END){
-    //stop the ground
-    ground.velocityX = 0;
+   else if (gameState === END) {
+      ground.velocityX = 0;
+     
+     obstaclesGroup.setVelocityXEach(0);
+     cloudsGroup.setVelocityXEach(0);
+   }
   
-  }
-  
-  if(keyDown("space")&& trex.y >= 100) {
-    trex.velocityY = -13;
-  }
-  
-  trex.velocityY = trex.velocityY + 0.8
-  
-  if (ground.x < 0){
-    ground.x = ground.width/2;
-  }
-  
+ 
+  //stop trex from falling down
   trex.collide(invisibleGround);
   
-  //spawn the clouds
-  spawnClouds();
   
-  //spawn obstacles on the ground
-  spawnObstacles();
   
   drawSprites();
 }
@@ -94,9 +109,8 @@ function spawnObstacles(){
  if (frameCount % 60 === 0){
    var obstacle = createSprite(400,165,10,40);
    obstacle.velocityX = -6;
-
    
-    // //generate random obstacles
+    //generate random obstacles
     var rand = Math.round(random(1,6));
     switch(rand) {
       case 1: obstacle.addImage(obstacle1);
@@ -118,17 +132,14 @@ function spawnObstacles(){
     obstacle.scale = 0.5;
     obstacle.lifetime = 300;
    
-   //adding obstacles to the group
-   obstaclesGroup.add(obstacle);
+   //add each obstacle to the group
+    obstaclesGroup.add(obstacle);
  }
 }
 
-
-
-
 function spawnClouds() {
   //write code here to spawn the clouds
-  if (frameCount % 60 === 0) {
+   if (frameCount % 60 === 0) {
      cloud = createSprite(600,100,40,10);
     cloud.y = Math.round(random(10,60));
     cloud.addImage(cloudImage);
@@ -144,6 +155,4 @@ function spawnClouds() {
     
     //adding cloud to the group
    cloudsGroup.add(cloud);
-  }
-  
-}
+    }
